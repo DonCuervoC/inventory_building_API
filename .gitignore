@@ -128,3 +128,10 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+<<<<<<< HEAD
+=======
+
+# dotenv environment variable files
+.env
+.env.*
+>>>>>>> 9da0fce4f8d85028ef845582e1067e002d311423
