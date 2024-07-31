@@ -14,7 +14,7 @@ const cors = require('cors');
 const { connectToMongo } = require('./mongoConnection');
 // // const userRoutes = require('./routes/users/users.routes');
 // const path = require('path');
-// const ownerRoutes = require('./routes/owner/owner.routes');
+const userRoutes = require('./routes/users/users.routes');
 // const tenantRoutes = require('./routes/tenants/tenants.routes');
 // const contractRoutes = require('./routes/contracts/contracts.routes');
 // const propertyRoutes = require('./routes/properties/properties.routes');
@@ -28,6 +28,7 @@ const { connectToMongo } = require('./mongoConnection');
 // const https = require('https');
 const app = express();
 const PORT = process.env.PORT || 8000;
+const APIVERSION = process.env.APIVERSION;
 
 connectToMongo();
 
@@ -70,7 +71,9 @@ app.use(cors());
 
 // app.use('/users', require('./routes/users'));
 
-// app.use('/owner',ownerRoutes);
+app.use(`/api/${APIVERSION}/users`, userRoutes);
+
+
 // app.use('/tenant',tenantRoutes);
 // app.use('/property',propertyRoutes);
 // app.use('/contract',contractRoutes);
@@ -81,7 +84,7 @@ app.use(cors());
 
 
 // Start the server HTTP
- app.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT}`));
+ app.listen(PORT, () => console.log(`API running on port ${PORT}`));
 
 
 // Configuration HTTPS 

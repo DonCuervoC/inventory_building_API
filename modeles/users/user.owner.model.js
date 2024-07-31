@@ -1,8 +1,32 @@
 const mongoose = require('mongoose');
 
+const subscriptionSchema = new mongoose.Schema({
+    customerSubscriptionId: {
+        type: String
+    },
+    subscriptionStatus: {
+        type: String,
+        enum: ["active", "inactive"],
+        default: "inactive",
+        required: true
+    },
+    payments: [{
+        amount: {
+            type: Number
+        },
+        date: {
+            type: Date
+        },
+        status: {
+            type: String
+        }
+    }]
+}, { _id: false }); 
+
 const ownerSchema = new mongoose.Schema({
     _id: {
         type: String,
+        default: () => new mongoose.Types.ObjectId().toString(),
         required: true
     },
     email: {
@@ -35,7 +59,7 @@ const ownerSchema = new mongoose.Schema({
         },
         apartment: {
             type: String,
-            //required: true
+            required: true
         },
         city: {
             type: String,
@@ -61,7 +85,7 @@ const ownerSchema = new mongoose.Schema({
     },
     properties: [
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: String,
             ref: 'Property',
             required: true
         }
@@ -73,22 +97,11 @@ const ownerSchema = new mongoose.Schema({
             required: true
         }
     ],
-    customer_square_id: {
-        type: String
-    },
-    subscription_status: {
-        type: String,
-        enum: ["active", "inactive"],
-        default: "inactive",
-        required: true
-    },
-    payments: {
-        type: Array
-    },
+    customerData: [subscriptionSchema], // Array containing the subscription scheme
     isActive: {
         type: Boolean,
         required: true,
-        // default: false 
+        default: true 
     },
     date: {
         type: Date,
@@ -96,10 +109,20 @@ const ownerSchema = new mongoose.Schema({
     }
 });
 
-// Correction : Ajout d'un index unique sur le champ email
-ownerSchema.index({ email: 1 }, { unique: true });
 
-// Modèle Owner basé sur le schéma
+ownerSchema.index({ email: 1 }, { unique: true });
+ownerSchema.index({ appointments: 1 });
+ownerSchema.index({ properties: 1 });
+ownerSchema.index({ roles: 1 }); 
+
+
 const Owner = mongoose.model('owners', ownerSchema);
+
+async function createIndexes() {
+    await Owner.syncIndexes();
+    console.log('Indexes created');
+}
+
+createIndexes().catch(err => console.log(err));
 
 module.exports = Owner;
