@@ -1,7 +1,6 @@
 const { Router } = require("express");
-//const projectController = require("../../controllers/projects.controller");
-//const tokenAuthentifie = require("../../config/jwt.authenticated");
-const ownerController = require('../../controllers/users/owner.controller.js');
+
+const tknAuthenticated = require("../../auth/middlewares/jwt.authenticated.js");
 const globalUserController = require('../../controllers/users/user.global.controller.js');
 
 const { upload } = require('../../utils/multer.js');
@@ -10,18 +9,30 @@ const router = Router();
 
 // OWNERS
 //Register
-router.post('/owner/new', globalUserController.Register('owner') ), 
-// router.post('/owner', ownerController.Register);
+router.post('/owner/new', globalUserController.Register('owner')),
 
-// Login
-router.post('/login', globalUserController.Login);
+    // Login
+    router.post('/login', globalUserController.Login);
 
 //Logout
-router.post('/logout', globalUserController.Logout);
+router.post('/logout',
+[
+    tknAuthenticated.ensureAuth,
+    tknAuthenticated.isActiveSession
+],
+    globalUserController.Logout);
 
 
 // update 
-router.patch('/user', [upload.fields([{ name: 'image', maxCount: 1 }])], globalUserController.Edit);
+router.patch('/user',
+[
+    tknAuthenticated.ensureAuth,
+    tknAuthenticated.isActiveSession
+],
+    [
+        upload.fields([{ name: 'image', maxCount: 1 }])
+    ],
+    globalUserController.Edit);
 
 
 module.exports = router;

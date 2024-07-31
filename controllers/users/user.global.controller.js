@@ -88,11 +88,11 @@ const Register = (role) => async (req, res) => {
 
         const newOwnerId = insertResult.insertedId.toString();
 
-        logger.info(`{action: new-owner, status: ${CREATED_STATUS}, ownerId: ${newOwnerId}}`);
+        // logger.info(`{action: new-owner, status: ${CREATED_STATUS}, ownerId: ${newOwnerId}}`);
         return res.status(201).json({ msg: "new-owner-ok", ownerId: newOwnerId });
     } catch (error) {
         console.error(error);
-        logger.info(`{action: new-owner, status: ${CREATED_STATUS}, statusCode: ${error.statusCode || 500}message: ${error.message}`);
+        //logger.info(`{action: new-owner, status: ${CREATED_STATUS}, statusCode: ${error.statusCode || 500}message: ${error.message}`);
         return res.status(error.statusCode || 500).json({ error: error.message || error });
     }
 };
@@ -251,7 +251,7 @@ async function Edit(req, res) {
         res.status(200).json({ msg: "Edit" });
 
     } catch (error) {
-        // Gérer les erreurs et renvoyer une réponse d'erreur du serveur
+
         console.error(`Error while editing user ${error.message}`);
         return res.status(500).json({ msg: "Internal Server Error", error: error });
     }

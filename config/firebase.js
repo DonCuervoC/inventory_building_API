@@ -15,21 +15,21 @@ const firebaseConfig = {
     measurementId: process.env.FIREBASE_MESUREMENT_ID,
 };
 
-// Inicializar la aplicación de Firebase
+// Init firebase application
 const firebaseApp = initializeApp(firebaseConfig);
 
-// Inicializar Firebase Analytics (solo si es compatible)
+// Initialize Firebase Analytics (only if supported)
 let firebaseAnalytics;
 isSupported().then((supported) => {
     if (supported) {
         firebaseAnalytics = getAnalytics(firebaseApp);
     } else {
-        console.log("Firebase Analytics no es compatible en este entorno.");
+        console.log("Firebase Analytics is not supported in this environment.");
     }
 });
 
-// Inicializar Firebase Storage
+// Initialize Firebase Storage
 const storage = getStorage(firebaseApp);
 
-// Exportar `storage` y `firebaseAnalytics`
+
 module.exports = { storage, firebaseAnalytics };
