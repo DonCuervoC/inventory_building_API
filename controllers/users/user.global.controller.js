@@ -5,7 +5,7 @@ const nodemailer = require('nodemailer');
 
 const { getDb } = require('../../mongoConnection');
 const { validateRegisterOwnerFields, validateUpdateOwnerFields } = require('../../utils/validatorFields');
-const { uploadFile} = require('../../utils/uploadFile');
+const { uploadFile, uploadImage, deleteFile} = require('../../utils/uploadFile');
 
 const logger = require('../../utils/logger');
 const jwt = require("../../utils/jwt.js");
@@ -232,12 +232,16 @@ async function Edit(req, res) {
         //     findUser.active = findUser.isActive.toLowerCase() === 'true';
         // }
 
-        if (image && image.length > 0) {
-            const { downloadURL } = await uploadFile(image[0]);
-            findUser.avatar = downloadURL;
+        if (findUser.avatar) {
+            await deleteFile(`avatars/${findUser.avatar}`);
         }
 
-        console.log(userData);
+        if (image && image.length > 0) {
+            // const { downloadURL } = await uploadFile(image[0]);
+            const { downloadURL } = await uploadImage(image[0]);
+            
+            findUser.avatar = downloadURL;
+        }
 
         const result = await userCollection.updateOne(
             { _id: userId }, 
@@ -248,7 +252,7 @@ async function Edit(req, res) {
             return res.status(500).json({ msg: "User update failed (No attributes changed)" });
         }
 
-        res.status(200).json({ msg: "Edit" });
+        res.status(200).json({ msg: "User updated OK" });
 
     } catch (error) {
 

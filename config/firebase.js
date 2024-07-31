@@ -19,17 +19,18 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 
 // Initialize Firebase Analytics (only if supported)
-let firebaseAnalytics;
-isSupported().then((supported) => {
-    if (supported) {
-        firebaseAnalytics = getAnalytics(firebaseApp);
-    } else {
-        console.log("Firebase Analytics is not supported in this environment.");
-    }
-});
+// let firebaseAnalytics;
+// isSupported().then((supported) => {
+//     if (supported) {
+//         firebaseAnalytics = getAnalytics(firebaseApp);
+//     } else {
+//         console.log("Firebase Analytics is not supported in this environment.");
+//     }
+// });
 
 // Initialize Firebase Storage
 const storage = getStorage(firebaseApp);
 
 
-module.exports = { storage, firebaseAnalytics };
+// module.exports = { storage, firebaseAnalytics };
+module.exports = { storage };
