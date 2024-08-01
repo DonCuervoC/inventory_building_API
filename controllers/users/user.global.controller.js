@@ -5,7 +5,8 @@ const nodemailer = require('nodemailer');
 
 const { getDb } = require('../../mongoConnection');
 const { validateRegisterOwnerFields, validateUpdateOwnerFields } = require('../../utils/validatorFields');
-const { uploadFile, uploadImage, deleteFile} = require('../../utils/uploadFile');
+const { uploadFile, uploadImage, deleteFile } = require('../../utils/uploadFile');
+const { setCache, getCache, deleteCache } = require('../../utils/cache.js');
 
 const logger = require('../../utils/logger');
 const jwt = require("../../utils/jwt.js");
@@ -34,24 +35,6 @@ const ERROR_STATUS = process.env.ERROR_STATUS;
 const mainDb = getDb(`${MYDATABASE}`);
 const userCollection = mainDb.collection(G_USER_COLLECTION);
 // const ownerCollection = mainDb.collection(OWNERS_COLLECTION);
-
-
-async function AreOwnersCoOwners(ownerId1, ownerId2) {
-    try {
-        const propertiesCollection = mainDb.collection(PROPERTIES_COLLECTION);
-
-        // Recherche d'une propriété qui contient à la fois ownerId1 et ownerId2 dans son tableau 'owners'
-        const coOwnedProperty = await propertiesCollection.findOne({
-            owners: { $all: [ownerId1, ownerId2] }
-        });
-
-        // Si une propriété est trouvée, cela signifie que les deux propriétaires sont co-propriétaires
-        return !!coOwnedProperty;
-    } catch (error) {
-        console.error("Erreur durant la recherche CoOwners", error);
-        throw error; // Renvoie l'erreur pour être gérée par le caller
-    }
-}
 
 const Register = (role) => async (req, res) => {
     try {
@@ -228,18 +211,19 @@ async function Edit(req, res) {
 
         Object.assign(findUser, userData);
 
-        // if (typeof findUser.isActive === 'string') {
-        //     findUser.active = findUser.isActive.toLowerCase() === 'true';
-        // }
-
-        if (findUser.avatar) {
-            await deleteFile(`avatars/${findUser.avatar}`);
+        if (userData.isActive !== undefined) {
+            findUser.isActive = userData.isActive === 'true' || userData.isActive === true;
         }
+
 
         if (image && image.length > 0) {
             // const { downloadURL } = await uploadFile(image[0]);
-            const { downloadURL } = await uploadImage(image[0]);
+            if (findUser.avatar) {
+                await deleteFile(`avatars/${findUser.avatar}`);
+            }
             
+            const { downloadURL } = await uploadImage(image[0]);
+
             findUser.avatar = downloadURL;
         }
 
@@ -252,12 +236,110 @@ async function Edit(req, res) {
             return res.status(500).json({ msg: "User update failed (No attributes changed)" });
         }
 
+        // Delete the cached data for this user
+        deleteCache(`${userId}`);
+
         res.status(200).json({ msg: "User updated OK" });
 
     } catch (error) {
 
         console.error(`Error while editing user ${error.message}`);
         return res.status(500).json({ msg: "Internal Server Error", error: error });
+    }
+}
+
+async function getMe(req, res) {
+
+    try {
+
+        // Extract the token from the authorization header
+        const token = req.headers.authorization?.replace("Bearer ", "");
+        if (!token) {
+            return res.status(400).json({ msg: "Token not provided" });
+        }
+
+        // Decode the token to extract user ID
+        const myToken = jwt.decoded(token);
+        const userId = myToken.user_id;
+
+        const cacheKey = `${userId}`;
+        const [cachedUserProfile, foundInCache] = getCache(cacheKey);
+
+        if (foundInCache) {
+            // If data is found in cache, return it
+            console.log('Data found in cache. Returning cached data...');
+            return res.status(200).json(cachedUserProfile);
+        }
+
+        // Find the user by ID
+        const userProfile = await userCollection.findOne({ _id: userId });
+        if (!userProfile) {
+            return res.status(404).json({ msg: "User profile not found" });
+        }
+
+        // Exclude sensitive information before returning the profile
+        const { password, allConditionsAccepted, authDetails, roles, ...userData } = userProfile;
+
+        // Cache the user data with a custom TTL if needed
+        setCache(cacheKey, userData, 150); // Use the default TTL or pass a custom TTL if needed
+
+        // Return the user's profile data
+        res.status(200).json(userData);
+
+    } catch (error) {
+
+        console.error(`Error retrieving user profile: ${error.message}`);
+        return res.status(500).json({ msg: "Internal server error", error: error });
+
+    }
+}
+
+
+//GET /users?userId=60d21b4667d0d8992e610c85
+//GET /users?companyName=tech
+
+// -> Search by roles (multiple roles can be included, separated by commas)
+//GET /users?roles=admin,maintenance
+
+// ->  Search by active/inactive status (boolean):
+//GET /users?isActive=true
+//GET /users?isActive=false
+
+// -> Mixing parameters:
+// GET /users?companyName=tech&roles=admin,owner&isActive=true
+async function getUserRequest(req, res) {
+    try {
+        // Extract query parameters from the request
+        const { userId, companyName, roles, isActive } = req.query;
+
+        // Construct the query object
+        let query = {};
+
+        if (userId) {
+            query._id = userId;
+        }
+
+        if (companyName) {
+            query.companyName = { $regex: new RegExp(companyName, 'i') }; // Case-insensitive search
+        }
+
+        if (roles) {
+            query.roles = { $in: roles.split(',') }; // Split comma-separated roles and search for any match
+        }
+
+        if (isActive !== undefined) {
+            query.isActive = isActive === 'true'; // Convert 'true'/'false' to boolean
+        }
+
+        // console.log(query);
+        // Execute the query
+        const users = await userCollection.find(query).toArray();
+
+        // Return the results
+        res.status(200).json(users);
+    } catch (error) {
+        console.error(`Error retrieving users: ${error.message}`);
+        return res.status(500).json({ msg: "Internal server error", error: error });
     }
 }
 
@@ -301,5 +383,7 @@ module.exports = {
     Register,
     Login,
     Logout,
-    Edit
+    Edit,
+    getMe,
+    getUserRequest
 };

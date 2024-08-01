@@ -11,8 +11,8 @@ const router = Router();
 //Register
 router.post('/owner/new', globalUserController.Register('owner')),
 
-    // Login
-    router.post('/login', globalUserController.Login);
+// Login
+router.post('/login', globalUserController.Login);
 
 //Logout
 router.post('/logout',
@@ -25,14 +25,33 @@ router.post('/logout',
 
 // update 
 router.patch('/user',
-[
-    tknAuthenticated.ensureAuth,
-    tknAuthenticated.isActiveSession
-],
+    [
+        tknAuthenticated.ensureAuth,
+        tknAuthenticated.isActiveSession
+    ],
     [
         upload.fields([{ name: 'image', maxCount: 1 }])
     ],
     globalUserController.Edit);
+
+//GETME 
+router.get('/me',
+    [
+        tknAuthenticated.ensureAuth,
+        tknAuthenticated.isActiveSession
+    ],
+    globalUserController.getMe
+);
+
+
+router.get('/user',
+    [
+        tknAuthenticated.ensureAuth,
+        tknAuthenticated.isActiveSession
+    ],
+    globalUserController.getUserRequest
+);
+
 
 
 module.exports = router;

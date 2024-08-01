@@ -10,7 +10,7 @@ const { connectToMongo } = require('./mongoConnection');
 const userRoutes = require('./routes/users/users.routes');
 // const tenantRoutes = require('./routes/tenants/tenants.routes');
 // const contractRoutes = require('./routes/contracts/contracts.routes');
-// const propertyRoutes = require('./routes/properties/properties.routes');
+const propertyRoutes = require('./routes/properties/properties.routes');
 // const maintenanceRoutes = require('./routes/maintenance/maintenance.routes');
 // const squareRoutes = require('./routes/square/square.routes');
 // const inventoryRoutes = require('./routes/inventory/inventory.routes');
@@ -35,6 +35,7 @@ app.use(cors());
 
 
 app.use(`/api/${APIVERSION}/users`, userRoutes);
+app.use(`/api/${APIVERSION}/properties`, propertyRoutes);
 
 
 // Start the server HTTP

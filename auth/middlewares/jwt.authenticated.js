@@ -40,6 +40,38 @@ function ensureAuth(req, res, next) {
     }
 }
 
+function ensureAuthOwner(req, res, next) {
+    try {
+        if (!req.headers.authorization) {
+            return res.status(403).send({ msg: msgAuthHeader });
+        }
+        const token = req.headers.authorization.replace("Bearer ", "");
+        
+        const payload = jwt.decode(token);
+
+        // Verificar si el token ha expirado
+        const { exp } = payload;
+        const currentData = new Date().getTime();
+        
+        if (exp <= currentData) {
+            return res.status(403).send({ msg: msgExpToken });
+        }
+
+        // Verificar si el rol de 'owner' está presente en user_roles
+        const hasRole = payload.user_roles.includes('owner');
+        if (!hasRole) {
+            return res.status(403).send({ msg: "User not authorized" });
+        }
+
+        // Si el token es válido y el rol es correcto, permitir el acceso
+        req.user = payload;
+        next();
+        
+    } catch (error) {
+        return res.status(400).send({ msg: msgInvToken });
+    }
+}
+
 async function isActiveSession(req, res, next) {
     try {
         if (!req.headers.authorization) {
@@ -93,5 +125,6 @@ async function isCompletedUser(req, res, next) {
 module.exports ={
     ensureAuth,
     isActiveSession,
-    isCompletedUser
+    isCompletedUser,
+    ensureAuthOwner
 }
