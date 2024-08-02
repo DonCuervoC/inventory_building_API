@@ -86,9 +86,66 @@ async function validateUpdateOwnerFields(req) {
     }
 }
 
+async function validatePropertyFields(req) {
+    try {
+        // Validation of street
+        await body('street')
+            .notEmpty().withMessage('Street address is required')
+            .isLength({ min: 5 }).withMessage('Street address must be at least 5 characters long')
+            .run(req);
+
+        // Validation of city
+        await body('city')
+            .notEmpty().withMessage('City is required')
+            .isLength({ min: 3 }).withMessage('City must be at least 3 characters long')
+            .run(req);
+
+        // Validation of province
+        await body('province')
+            .notEmpty().withMessage('Province is required')
+            .isLength({ min: 4 }).withMessage('Province must be at least 4 characters long')
+            .run(req);
+
+        // Validation of postalCode
+        await body('postalCode')
+            .notEmpty().withMessage('Postal code is required')
+            .isLength({ min: 5 }).withMessage('Postal code must be at least 5 characters long')
+            .run(req);
+
+        // Validation of country
+        await body('country')
+            .notEmpty().withMessage('Country is required')
+            .isLength({ min: 3 }).withMessage('Country must be at least 3 characters long')
+            .run(req);
+
+        // Validation of name
+        await body('name')
+            .notEmpty().withMessage('Name is required')
+            .isLength({ min: 3 }).withMessage('Name must be at least 3 characters long')
+            .run(req);
+
+        // Validation of type
+        await body('type')
+            .notEmpty().withMessage('Type is required')
+            .isIn(['Commercial', 'Residential']).withMessage('Type must be either "Commercial" or "Residential"')
+            .run(req);
+
+        // Validation of description (optional, with minimum length)
+        await body('description')
+            .optional()
+            .isLength({ min: 10 }).withMessage('Description must be at least 10 characters long')
+            .run(req);
+
+    } catch (error) {
+        // Handle validation errors here
+        console.log("Field validation error", error);
+    }
+}
+
 
 module.exports = {
     validateRegisterOwnerFields,
-    validateUpdateOwnerFields
+    validateUpdateOwnerFields,
+    validatePropertyFields
     
 };

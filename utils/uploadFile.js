@@ -2,15 +2,25 @@ const { ref, getDownloadURL, uploadBytesResumable, deleteObject  } = require('fi
 const { storage } = require('../config/firebase');
 const sharp = require('sharp');
 
+const FBFN_FILES = process.env.FBFN_FILES;
+const FBFN_AVATAR = process.env.FBFN_AVATAR;
+const FBFN_PROPERTIES = process.env.FBFN_PROPERTIES;
+
+
 async function uploadFile(file) {
     try {
+        // console.log("uploadFile");
+
         // Procesar la imagen con sharp
         let fileBuffer = await sharp(file.buffer)
             .resize({ width: 200, height: 200, fit: 'cover' })
             .toBuffer();
 
         // Crear referencia en Firebase Storage con un nombre de archivo único
-        const fileRef = ref(storage, `files/${file.originalname}_${Date.now()}`);
+        // const fileRef = ref(storage, `files/${file.originalname}_${Date.now()}`);
+        const fileRef = ref(storage, `${FBFN_FILES}/${file.originalname}_${Date.now()}`);
+
+        // console.log("FBFN_FILES: ", FBFN_FILES);
 
         // Metadatos del archivo
         const fileMetadata = {
@@ -34,16 +44,57 @@ async function uploadFile(file) {
     }
 }
 
-async function uploadImage(file) {
+async function uploadImageAvatar(file) {
     try {
+
+        // console.log("uploadImage");
         // Procesar la imagen con sharp
         let fileBuffer = await sharp(file.buffer)
             .resize({ width: 200, height: 200, fit: 'cover' })
             .toBuffer();
 
         // Crear referencia en Firebase Storage con un nombre de archivo único
-        const fileRef = ref(storage, `avatars/${file.originalname}_${Date.now()}`);
+        // const fileRef = ref(storage, `avatars/${file.originalname}_${Date.now()}`);
+        const fileRef = ref(storage, `${FBFN_AVATAR}/${file.originalname}_${Date.now()}`);
 
+        // console.log("FBFN_AVATAR: ", FBFN_AVATAR);
+
+        // Metadatos del archivo
+        const fileMetadata = {
+            contentType: file.mimetype,
+        };
+
+        // Subir el archivo con datos resumidos
+        const fileUploadPromise = uploadBytesResumable(fileRef, fileBuffer, fileMetadata);
+
+        // Esperar a que la subida termine
+        await fileUploadPromise;
+
+        // Obtener URL de descarga del archivo subido
+        const fileDownloadURL = await getDownloadURL(fileRef);
+
+        // Retornar referencia y URL de descarga
+        return { ref: fileRef, downloadURL: fileDownloadURL };
+    } catch (error) {
+        console.error("Error while uploading file:", error);
+        throw new Error("Error while uploading file. Please try Again.");
+    }
+}
+
+async function uploadImageProperty(file) {
+    try {
+
+        // console.log("uploadImageProperty: ");
+        // Procesar la imagen con sharp
+        let fileBuffer = await sharp(file.buffer)
+            .resize({ width: 200, height: 200, fit: 'cover' })
+            .toBuffer();
+
+        // Crear referencia en Firebase Storage con un nombre de archivo único
+        // const fileRef = ref(storage, `properties/${file.originalname}_${Date.now()}`);
+        const fileRef = ref(storage, `${FBFN_PROPERTIES}/${file.originalname}_${Date.now()}`);
+
+        // console.log("FBFN_PROPERTIES: ", FBFN_PROPERTIES);
         // Metadatos del archivo
         const fileMetadata = {
             contentType: file.mimetype,
@@ -87,6 +138,7 @@ async function deleteFile(fileURL) {
 
 module.exports = {
     uploadFile,
-    uploadImage,
-    deleteFile
+    uploadImageAvatar,
+    deleteFile,
+    uploadImageProperty
 };

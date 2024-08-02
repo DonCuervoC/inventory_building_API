@@ -20,10 +20,6 @@ const propertySchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    apartment: {
-        type: String,
-        required: true
-    },
     city: {
         type: String,
         required: true
@@ -33,6 +29,10 @@ const propertySchema = new mongoose.Schema({
         required: true
     },
     postalCode: {
+        type: String,
+        required: true
+    },
+    country: {
         type: String,
         required: true
     }

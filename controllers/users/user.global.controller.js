@@ -5,7 +5,7 @@ const nodemailer = require('nodemailer');
 
 const { getDb } = require('../../mongoConnection');
 const { validateRegisterOwnerFields, validateUpdateOwnerFields } = require('../../utils/validatorFields');
-const { uploadFile, uploadImage, deleteFile } = require('../../utils/uploadFile');
+const { uploadFile, uploadImageAvatar, deleteFile } = require('../../utils/uploadFile');
 const { setCache, getCache, deleteCache } = require('../../utils/cache.js');
 
 const logger = require('../../utils/logger');
@@ -24,12 +24,15 @@ const OWNERS_COLLECTION = process.env.OWNERS_COLLECTION;
 const G_USER_COLLECTION = process.env.G_USER_COLLECTION;
 const MYDATABASE = process.env.MYDATABASE;
 
-
 const CREATED_STATUS = process.env.CREATED_STATUS;
 const DELETED_STATUS = process.env.DELETED_STATUS;
 const WATCHED_STATUS = process.env.WATCHED_STATUS;
 const UPDATED_STATUS = process.env.UPDATED_STATUS;
 const ERROR_STATUS = process.env.ERROR_STATUS;
+
+const FBFN_FILES = process.env.FBFN_FILES;
+const FBFN_AVATAR = process.env.FBFN_AVATAR;
+const FBFN_PROPERTIES = process.env.FBFN_PROPERTIES;
 
 
 const mainDb = getDb(`${MYDATABASE}`);
@@ -219,12 +222,15 @@ async function Edit(req, res) {
         if (image && image.length > 0) {
             // const { downloadURL } = await uploadFile(image[0]);
             if (findUser.avatar) {
-                await deleteFile(`avatars/${findUser.avatar}`);
+                // await deleteFile(`avatars/${findUser.avatar}`);
+                await deleteFile(`${FBFN_AVATAR}/${findUser.avatar}`);
             }
             
-            const { downloadURL } = await uploadImage(image[0]);
+            const { downloadURL } = await uploadImageAvatar(image[0]);
 
             findUser.avatar = downloadURL;
+
+            // console.log(downloadURL);
         }
 
         const result = await userCollection.updateOne(

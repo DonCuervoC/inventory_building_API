@@ -12,8 +12,17 @@ const router = Router();
 router.post('/property/new', [
     tknAuthenticated.ensureAuthOwner,
     tknAuthenticated.isActiveSession
-], 
-propertiesController.NewProperty);
+],
+    [
+        upload.fields([
+            { name: 'photo1', maxCount: 1 },
+            { name: 'photo2', maxCount: 1 },
+            { name: 'photo3', maxCount: 1 },
+            { name: 'photo4', maxCount: 1 },
+            { name: 'photo5', maxCount: 1 },
+            { name: 'photo6', maxCount: 1 }])
+    ],
+    propertiesController.NewProperty);
 
 
 // // update 
