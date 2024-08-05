@@ -142,10 +142,184 @@ async function validatePropertyFields(req) {
     }
 }
 
+async function validatePropertyUpdateFields01(req) {
+    try {
+        // Validation of street (if provided)
+        if (req.body.street !== undefined) {
+            await body('street')
+                .notEmpty().withMessage('Street address cannot be empty if provided')
+                .isLength({ min: 5 }).withMessage('Street address must be at least 5 characters long')
+                .run(req);
+        }
+
+        // Validation of city (if provided)
+        if (req.body.city !== undefined) {
+            await body('city')
+                .notEmpty().withMessage('City cannot be empty if provided')
+                .isLength({ min: 3 }).withMessage('City must be at least 3 characters long')
+                .run(req);
+        }
+
+        // Validation of province (if provided)
+        if (req.body.province !== undefined) {
+            await body('province')
+                .notEmpty().withMessage('Province cannot be empty if provided')
+                .isLength({ min: 4 }).withMessage('Province must be at least 4 characters long')
+                .run(req);
+        }
+
+        // Validation of postalCode (if provided)
+        if (req.body.postalCode !== undefined) {
+            await body('postalCode')
+                .notEmpty().withMessage('Postal code cannot be empty if provided')
+                .isLength({ min: 5 }).withMessage('Postal code must be at least 5 characters long')
+                .run(req);
+        }
+
+        // Validation of country (if provided)
+        if (req.body.country !== undefined) {
+            await body('country')
+                .notEmpty().withMessage('Country cannot be empty if provided')
+                .isLength({ min: 3 }).withMessage('Country must be at least 3 characters long')
+                .run(req);
+        }
+
+        // Validation of name (if provided)
+        if (req.body.name !== undefined) {
+            await body('name')
+                .notEmpty().withMessage('Name cannot be empty if provided')
+                .isLength({ min: 3 }).withMessage('Name must be at least 3 characters long')
+                .run(req);
+        }
+
+        // Validation of type (if provided)
+        if (req.body.type !== undefined) {
+            await body('type')
+                .notEmpty().withMessage('Type cannot be empty if provided')
+                .isIn(['Commercial', 'Residential']).withMessage('Type must be either "Commercial" or "Residential"')
+                .run(req);
+        }
+
+        // Validation of description (if provided)
+        if (req.body.description !== undefined) {
+            await body('description')
+                .optional()
+                .isLength({ min: 10 }).withMessage('Description must be at least 10 characters long')
+                .run(req);
+        }
+
+    } catch (error) {
+        // Handle validation errors here
+        console.error("Field validation error", error);
+    }
+}
+
+async function validatePropertyUpdateFields(req) {
+    try {
+        const { street, postalCode, city, province, country, name, type, description } = req.body;
+
+        // Check if street or postalCode is provided to handle their interdependency
+        const isStreetProvided = street !== undefined;
+        const isPostalCodeProvided = postalCode !== undefined;
+
+        // Validate street if provided
+        if (isStreetProvided) {
+            await body('street')
+                // .notEmpty().withMessage('Street address cannot be empty if provided')
+                .optional()
+                .isLength({ min: 5 }).withMessage('Street address must be at least 5 characters long')
+                .run(req);
+        }
+
+        // Validate postalCode if provided
+        if (isPostalCodeProvided) {
+            await body('postalCode')
+                // .notEmpty().withMessage('Postal code cannot be empty if provided')
+                .optional()
+                .isLength({ min: 5 }).withMessage('Postal code must be at least 5 characters long')
+                .run(req);
+        }
+
+        // If street is provided, ensure postalCode is also provided
+        if (isStreetProvided && !isPostalCodeProvided) {
+            await body('postalCode')
+                .notEmpty().withMessage('Postal code is required if street is updated')
+                .isLength({ min: 5 }).withMessage('Postal code must be at least 5 characters long')
+                .run(req);
+        }
+
+        // If postalCode is provided, ensure street is also provided
+        if (isPostalCodeProvided && !isStreetProvided) {
+            await body('street')
+                .notEmpty().withMessage('Street address is required if postal code is updated')
+                .isLength({ min: 5 }).withMessage('Street address must be at least 5 characters long')
+                .run(req);
+        }
+
+        // Validate city (if provided)
+        if (city !== undefined) {
+            await body('city')
+                // .notEmpty().withMessage('City cannot be empty if provided')
+                .optional()
+                .isLength({ min: 3 }).withMessage('City must be at least 3 characters long')
+                .run(req);
+        }
+
+        // Validate province (if provided)
+        if (province !== undefined) {
+            await body('province')
+                // .notEmpty().withMessage('Province cannot be empty if provided')
+                .optional()
+                .isLength({ min: 4 }).withMessage('Province must be at least 4 characters long')
+                .run(req);
+        }
+
+        // Validate country (if provided)
+        if (country !== undefined) {
+            await body('country')
+                // .notEmpty().withMessage('Country cannot be empty if provided')
+                .optional()
+                .isLength({ min: 3 }).withMessage('Country must be at least 3 characters long')
+                .run(req);
+        }
+
+        // Validate name (if provided)
+        if (name !== undefined) {
+            await body('name')
+                // .notEmpty().withMessage('Name cannot be empty if provided')
+                .optional()
+                .isLength({ min: 3 }).withMessage('Name must be at least 3 characters long')
+                .run(req);
+        }
+
+        // Validate type (if provided)
+        if (type !== undefined) {
+            await body('type')
+                // .notEmpty().withMessage('Type cannot be empty if provided')
+                .optional()
+                .isIn(['Commercial', 'Residential']).withMessage('Type must be either "Commercial" or "Residential"')
+                .run(req);
+        }
+
+        // Validate description (if provided)
+        if (description !== undefined) {
+            await body('description')
+                .optional()
+                .isLength({ min: 10 }).withMessage('Description must be at least 10 characters long')
+                .run(req);
+        }
+
+    } catch (error) {
+        console.error("Field validation error", error);
+    }
+}
+
+
 
 module.exports = {
     validateRegisterOwnerFields,
     validateUpdateOwnerFields,
-    validatePropertyFields
+    validatePropertyFields,
+    validatePropertyUpdateFields
     
 };
