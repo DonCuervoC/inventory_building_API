@@ -84,7 +84,7 @@ const userSchema = new mongoose.Schema({
     },
     roles: {
         type: [String],
-        enum: ['admin', 'owner', 'tenant', 'maintenance', 'master'],
+        enum: ['admin', 'owner', 'tenant', 'worker', 'master'],
         required: true
     },
     properties: [{ // owner, admin, maintenence, super

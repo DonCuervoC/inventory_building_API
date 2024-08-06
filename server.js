@@ -12,7 +12,7 @@ const userRoutes = require('./routes/users/users.routes');
 // const contractRoutes = require('./routes/contracts/contracts.routes');
 const propertyRoutes = require('./routes/properties/properties.routes');
 // const maintenanceRoutes = require('./routes/maintenance/maintenance.routes');
-// const squareRoutes = require('./routes/square/square.routes');
+const menuRoutes = require('./routes/menu/menu.routes');
 // const inventoryRoutes = require('./routes/inventory/inventory.routes');
 // const logger = require('./logger');
 
@@ -36,6 +36,7 @@ app.use(cors());
 
 app.use(`/api/${APIVERSION}/users`, userRoutes);
 app.use(`/api/${APIVERSION}/properties`, propertyRoutes);
+app.use(`/api/${APIVERSION}/menues`, menuRoutes);
 
 
 // Start the server HTTP

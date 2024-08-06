@@ -4,12 +4,12 @@ const tknAuthenticated = require("../../auth/middlewares/jwt.authenticated.js");
 const propertiesController = require('../../controllers/properties/properties.controller.js');
 
 const { upload } = require('../../utils/multer.js');
-const router = Router();
+const api = Router();
 
 
 // OWNERS
 //Register
-router.post('/property/new', [
+api.post('/property/new', [
     tknAuthenticated.ensureAuthOwner,
     tknAuthenticated.isActiveSession],
     [
@@ -25,25 +25,25 @@ router.post('/property/new', [
 
 
 // // update 
-router.put('/property/update/:propertyId', [
+api.put('/property/update/:propertyId', [
     tknAuthenticated.ensureAuth,
     tknAuthenticated.isActiveSession],
     propertiesController.UpdateProperty);
 
 //Get all properties
-router.get('/property/all', [
+api.get('/property/all', [
     tknAuthenticated.ensureAuth,
     tknAuthenticated.isActiveSession],
     propertiesController.GetMyProperties);
 
 //Get a property by id
-router.get('/property/single/:propertyId', [
+api.get('/property/single/:propertyId', [
     tknAuthenticated.ensureAuth,
     tknAuthenticated.isActiveSession],
     propertiesController.GetSingleProperty);
 
 // ADD photos to property
-router.patch('/property/photos/add/:propertyId', [
+api.patch('/property/photos/add/:propertyId', [
     tknAuthenticated.ensureAuthOwner,
     tknAuthenticated.isActiveSession],
     [
@@ -58,11 +58,17 @@ router.patch('/property/photos/add/:propertyId', [
     propertiesController.UploadPhoto);
 
 //Delete a photo from property
-router.delete('/property/photos/del/:propertyId', [
+api.delete('/property/photos/del/:propertyId', [
+    tknAuthenticated.ensureAuth,
+    tknAuthenticated.isActiveSession],
+    propertiesController.DeletePhoto);
+
+
+api.delete('/property/owner/add/:propertyId', [
     tknAuthenticated.ensureAuth,
     tknAuthenticated.isActiveSession],
     propertiesController.DeletePhoto);
 
 
 
-module.exports = router;
+module.exports = rouapiter;

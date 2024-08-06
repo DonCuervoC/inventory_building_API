@@ -24,7 +24,8 @@ function OwnerHasProperty(owner, propertyId) {
 function RoleAuthEditProperty(user) {
     try {
         const hasRequiredRole = user.roles.some(role =>
-            ['owner', 'admin', 'master'].includes(role)
+            // ['owner', 'admin', 'master'].includes(role)
+            ['owner', 'master'].includes(role)
         );
 
         return hasRequiredRole;

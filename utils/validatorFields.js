@@ -142,78 +142,6 @@ async function validatePropertyFields(req) {
     }
 }
 
-async function validatePropertyUpdateFields01(req) {
-    try {
-        // Validation of street (if provided)
-        if (req.body.street !== undefined) {
-            await body('street')
-                .notEmpty().withMessage('Street address cannot be empty if provided')
-                .isLength({ min: 5 }).withMessage('Street address must be at least 5 characters long')
-                .run(req);
-        }
-
-        // Validation of city (if provided)
-        if (req.body.city !== undefined) {
-            await body('city')
-                .notEmpty().withMessage('City cannot be empty if provided')
-                .isLength({ min: 3 }).withMessage('City must be at least 3 characters long')
-                .run(req);
-        }
-
-        // Validation of province (if provided)
-        if (req.body.province !== undefined) {
-            await body('province')
-                .notEmpty().withMessage('Province cannot be empty if provided')
-                .isLength({ min: 4 }).withMessage('Province must be at least 4 characters long')
-                .run(req);
-        }
-
-        // Validation of postalCode (if provided)
-        if (req.body.postalCode !== undefined) {
-            await body('postalCode')
-                .notEmpty().withMessage('Postal code cannot be empty if provided')
-                .isLength({ min: 5 }).withMessage('Postal code must be at least 5 characters long')
-                .run(req);
-        }
-
-        // Validation of country (if provided)
-        if (req.body.country !== undefined) {
-            await body('country')
-                .notEmpty().withMessage('Country cannot be empty if provided')
-                .isLength({ min: 3 }).withMessage('Country must be at least 3 characters long')
-                .run(req);
-        }
-
-        // Validation of name (if provided)
-        if (req.body.name !== undefined) {
-            await body('name')
-                .notEmpty().withMessage('Name cannot be empty if provided')
-                .isLength({ min: 3 }).withMessage('Name must be at least 3 characters long')
-                .run(req);
-        }
-
-        // Validation of type (if provided)
-        if (req.body.type !== undefined) {
-            await body('type')
-                .notEmpty().withMessage('Type cannot be empty if provided')
-                .isIn(['Commercial', 'Residential']).withMessage('Type must be either "Commercial" or "Residential"')
-                .run(req);
-        }
-
-        // Validation of description (if provided)
-        if (req.body.description !== undefined) {
-            await body('description')
-                .optional()
-                .isLength({ min: 10 }).withMessage('Description must be at least 10 characters long')
-                .run(req);
-        }
-
-    } catch (error) {
-        // Handle validation errors here
-        console.error("Field validation error", error);
-    }
-}
-
 async function validatePropertyUpdateFields(req) {
     try {
         const { street, postalCode, city, province, country, name, type, description } = req.body;
@@ -314,12 +242,54 @@ async function validatePropertyUpdateFields(req) {
     }
 }
 
+async function validateMenuFields(req) {
+    try {
+
+        // Validation of Title
+        await body('title')//String
+            .notEmpty()
+            .isString()
+            .isLength({ min: 4 })
+            .withMessage('Title is required and must be at least 4 characyers long')
+            .run(req);
+
+        // Validation of URL Path
+        await body('path')//String
+            .notEmpty()
+            .isString()
+            .isLength({ min: 8 })
+            .withMessage('Path is required and must be at least 8 characters long')
+            .run(req);
+
+        // Validation of order into module
+        await body('order') // number
+            .notEmpty()
+            .isNumeric()
+            .withMessage('Order is required and must be numeric')
+            .run(req);
+
+        // Validation if visible 
+        await body('isActive') // boolean
+            .notEmpty()
+            .isBoolean()
+            .withMessage('isActive is required and must be boolean')
+            .run(req);
+
+
+
+    } catch (error) {
+        console.error("Field validation error", error);
+    }
+}
+
+
 
 
 module.exports = {
     validateRegisterOwnerFields,
     validateUpdateOwnerFields,
     validatePropertyFields,
-    validatePropertyUpdateFields
+    validatePropertyUpdateFields,
+    validateMenuFields
     
 };

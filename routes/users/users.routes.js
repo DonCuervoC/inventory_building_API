@@ -4,18 +4,18 @@ const tknAuthenticated = require("../../auth/middlewares/jwt.authenticated.js");
 const globalUserController = require('../../controllers/users/user.global.controller.js');
 
 const { upload } = require('../../utils/multer.js');
-const router = Router();
+const api = Router();
 
 
 // OWNERS
 //Register
-router.post('/owner/new', globalUserController.Register('owner')),
+api.post('/owner/new', globalUserController.Register('owner')),
 
 // Login
-router.post('/login', globalUserController.Login);
+api.post('/login', globalUserController.Login);
 
 //Logout
-router.post('/logout',
+api.post('/logout',
 [
     tknAuthenticated.ensureAuth,
     tknAuthenticated.isActiveSession
@@ -24,7 +24,7 @@ router.post('/logout',
 
 
 // update 
-router.patch('/user',
+api.patch('/user',
     [
         tknAuthenticated.ensureAuth,
         tknAuthenticated.isActiveSession
@@ -35,7 +35,7 @@ router.patch('/user',
     globalUserController.Edit);
 
 //GETME 
-router.get('/me',
+api.get('/me',
     [
         tknAuthenticated.ensureAuth,
         tknAuthenticated.isActiveSession
@@ -44,7 +44,7 @@ router.get('/me',
 );
 
 
-router.get('/user',
+api.get('/user',
     [
         tknAuthenticated.ensureAuth,
         tknAuthenticated.isActiveSession
@@ -54,4 +54,4 @@ router.get('/user',
 
 
 
-module.exports = router;
+module.exports = api;

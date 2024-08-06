@@ -72,6 +72,37 @@ function ensureAuthOwner(req, res, next) {
     }
 }
 
+function ensureAuthOwnerAdminMaster(req, res, next) {
+    try {
+        if (!req.headers.authorization) {
+            return res.status(403).send({ msg: msgAuthHeader });
+        }
+        const token = req.headers.authorization.replace("Bearer ", "");
+        
+        const payload = jwt.decode(token);
+
+        const { exp } = payload;
+        const currentData = new Date().getTime();
+        
+        if (exp <= currentData) {
+            return res.status(403).send({ msg: msgExpToken });
+        }
+
+        const hasRole = payload.user_roles.some(role =>
+            ['owner', 'admin', 'master'].includes(role))
+
+        if (!hasRole) {
+            return res.status(403).send({ msg: "User not authorized" });
+        }
+
+        req.user = payload;
+        next();
+        
+    } catch (error) {
+        return res.status(400).send({ msg: msgInvToken });
+    }
+}
+
 async function isActiveSession(req, res, next) {
     try {
         if (!req.headers.authorization) {
@@ -126,5 +157,6 @@ module.exports ={
     ensureAuth,
     isActiveSession,
     isCompletedUser,
-    ensureAuthOwner
+    ensureAuthOwner,
+    ensureAuthOwnerAdminMaster
 }

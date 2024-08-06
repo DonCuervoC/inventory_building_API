@@ -39,7 +39,6 @@ const propertySchema = new mongoose.Schema({
 },
   name: {
     type: String,
-    required: true,
     index: true
   },
   type: {
@@ -78,6 +77,13 @@ const propertySchema = new mongoose.Schema({
       index: true
     }
   ],
+  price: {
+    type: Number,
+    validate: {
+      validator: (value) => value >= 0,
+      message: 'Price must be a positive number'
+    }
+  },
   inventory: [
     {
       type: String,

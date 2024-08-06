@@ -17,7 +17,6 @@ const Owner = require('../../modeles/users/user.owner.model');
 const User = require('../../modeles/users/user.global')
 const Property = require('../../modeles/properties/property.js');
 
-
 const AES_KEY = process.env.AES_KEY;
 const TENNANTS_COLLECTION = process.env.TENNANTS_COLLECTION;
 const PROPERTIES_COLLECTION = process.env.PROPERTIES_COLLECTION;
@@ -25,7 +24,6 @@ const OWNERS_COLLECTION = process.env.OWNERS_COLLECTION;
 const G_USER_COLLECTION = process.env.G_USER_COLLECTION;
 const MYDATABASE = process.env.MYDATABASE;
 const FBFN_PROPERTIES = process.env.FBFN_PROPERTIES;
-
 
 const CREATED_STATUS = process.env.CREATED_STATUS;
 const DELETED_STATUS = process.env.DELETED_STATUS;
@@ -51,8 +49,6 @@ async function NewProperty(req, res) {
         }
 
         const propertyData = req.body;
-
-        console.log(propertyData);
 
         const token = req.headers.authorization.replace("Bearer ", "");
         const myToken = jwt.decoded(token);
@@ -543,7 +539,6 @@ async function DeletePhoto(req, res) {
         const isUserOwnerOfProperty = OwnerHasProperty(userFound, propertyId);
         const isUserAuthorized = RoleAuthEditProperty(userFound);
 
-
         if (!isUserOwnerOfProperty || !isUserAuthorized) {
             return res.status(401).json({ msg: "Unauthorized" });
         }
@@ -581,7 +576,123 @@ async function DeletePhoto(req, res) {
     }
 }
 
+async function AddCoOwnerToProperty(req, res) {
+    try {
 
+        const token = req.headers.authorization.replace("Bearer ", "");
+        const myToken = jwt.decoded(token);
+        const { propertyId, userId } = req.params;
+
+        if (!token) {
+            return res.status(400).json({ msg: "Le Token n'est pas fourni" });
+        }
+        
+        // Execute both queries in parallel
+        const [ownerFound, findProperty, userFound] = await Promise.all([
+            userCollection.findOne({ _id: myToken.user_id }),
+            propertyCollection.findOne({ _id: propertyId }),
+            userCollection.findOne({ _id: userId })
+        ]);
+
+        // Validate owner
+        if (!ownerFound) {
+            return res.status(404).json({ msg: "Owner not found" });
+        }
+        // Validate property
+        if (!findProperty) {
+            return res.status(404).json({ msg: "Property not found" });
+        }
+
+        // Validate property
+        if (!userFound) {
+            return res.status(404).json({ msg: "Co-owner not found" });
+        }
+
+        const isUserOwnerOfProperty = OwnerHasProperty(ownerFound, propertyId);
+        const isOwnerAuthorized = RoleAuthEditProperty(ownerFound);
+        const isUserAuthorized = RoleAuthEditProperty(userFound);
+
+        if (!isOwnerAuthorized || !isUserOwnerOfProperty || !isUserAuthorized) {
+            return res.status(401).json({ msg: "Unauthorized" });
+        }
+
+        await Promise.all([
+            propertyCollection.updateOne(
+                { _id: propertyId },
+                { $addToSet: { owners: userId } }
+            ),
+            userCollection.updateOne(
+                { _id: userId },
+                { $addToSet: { properties: propertyId } }
+            )
+        ]);
+
+        res.status(200).json({ msg: "Property created OK" });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ msg: "Internal server error", error: error });
+    }
+}
+
+async function RemoveOwnerFromProperty(req, res) {
+    try {
+        // Retrieve and validate the token
+        const token = req.headers.authorization.replace("Bearer ", "");
+        const myToken = jwt.decoded(token);
+        const { propertyId, userId } = req.params;
+
+        if (!token) {
+            return res.status(400).json({ msg: "Token not provided" });
+        }
+
+        // Execute both queries in parallel
+        const [ownerFound, findProperty, userFound] = await Promise.all([
+            userCollection.findOne({ _id: myToken.user_id }),
+            propertyCollection.findOne({ _id: propertyId }),
+            userCollection.findOne({ _id: userId })
+        ]);
+
+        // Validate owner
+        if (!ownerFound) {
+            return res.status(404).json({ msg: "Owner not found" });
+        }
+        // Validate property
+        if (!findProperty) {
+            return res.status(404).json({ msg: "Property not found" });
+        }
+        // Validate co-owner
+        if (!userFound) {
+            return res.status(404).json({ msg: "Co-owner not found" });
+        }
+
+        const isUserOwnerOfProperty = OwnerHasProperty(ownerFound, propertyId);
+        const isOwnerAuthorized = RoleAuthEditProperty(ownerFound);
+        const isUserAuthorized = RoleAuthEditProperty(userFound);
+
+        if (!isOwnerAuthorized || !isUserOwnerOfProperty || !isUserAuthorized) {
+            return res.status(401).json({ msg: "Unauthorized" });
+        }
+
+        // Remove owner from the property and remove property from the user
+        await Promise.all([
+            propertyCollection.updateOne(
+                { _id: propertyId },
+                { $pull: { owners: userId } } // Remove the userId from the owners array
+            ),
+            userCollection.updateOne(
+                { _id: userId },
+                { $pull: { properties: propertyId } } // Remove the propertyId from the properties array
+            )
+        ]);
+
+        res.status(200).json({ msg: "Co-owner removed successfully" });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ msg: "Internal server error", error: error });
+    }
+}
 
 
 
@@ -592,5 +703,7 @@ module.exports = {
     GetMyProperties,
     GetSingleProperty,
     UploadPhoto,
-    DeletePhoto
+    DeletePhoto,
+    AddCoOwnerToProperty,
+    RemoveOwnerFromProperty
 };
