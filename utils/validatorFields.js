@@ -283,6 +283,72 @@ async function validateMenuFields(req) {
 }
 
 
+async function validateUnitFields(req) {
+    try {
+        // Validation for available
+        await body('available') // boolean
+            .notEmpty()
+            .isBoolean()
+            .withMessage('Available is required and must be a boolean')
+            .run(req);
+
+        // Validation for number
+        await body('number') // string
+            .notEmpty()
+            .isString()
+            .isLength({ min: 1 })
+            .withMessage('Number is required and must be a string')
+            .run(req);
+
+        // Validation for property
+        await body('property') // string
+            .notEmpty()
+            .isString()
+            .withMessage('Property is required and must be a string')
+            .run(req);
+
+        // Validation for description
+        await body('description') // string
+            .notEmpty()
+            .isString()
+            .isLength({ min: 5 })
+            .withMessage('Description is required and must be at least 5 characters long')
+            .run(req);
+
+        // Validation for price
+        await body('price') // number
+            .optional()
+            .isNumeric()
+            .withMessage('Price must be a number')
+            .custom(value => value >= 0)
+            .withMessage('Price must be a positive number')
+            .run(req);
+
+        // Validation for condition
+        await body('condition') // string
+            .notEmpty()
+            .isString()
+            .isIn(['new', 'renovated', 'good', 'bad'])
+            .withMessage('Condition is required and must be one of the following: new, renovated, good, bad')
+            .run(req);
+
+        // // Validation for repairs (array of objects)
+        // await body('repairs')
+        //     .optional()
+        //     .isArray()
+        //     .withMessage('Repairs must be an array')
+        //     .custom(value => value.every(repair => 
+        //         typeof repair.date === 'string' && typeof repair.description === 'string'
+        //     ))
+        //     .withMessage('Each repair must be an object with a valid date and description')
+        //     .run(req);
+
+    } catch (error) {
+        console.error("Field validation error", error);
+    }
+}
+
+
 
 
 module.exports = {
@@ -290,6 +356,7 @@ module.exports = {
     validateUpdateOwnerFields,
     validatePropertyFields,
     validatePropertyUpdateFields,
-    validateMenuFields
+    validateMenuFields,
+    validateUnitFields
     
 };
